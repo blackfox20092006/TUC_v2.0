@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from colorama import init, AnsiToWin32
 from colorama import Fore, Back, Style
 import datetime
+from bs4 import BeautifulSoup
 import os
 from time import sleep
 import sys
@@ -53,12 +54,20 @@ chrome_options.add_argument('--disable-default-apps')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--log-level=3')
 driver = webdriver.Chrome(options=chrome_options)
-
+def get_username_information(html_source):
+    soup = BeautifulSoup(html_source, 'html.parser')
+    likes_counts = 0
+    followers_counts = 0
+    for tag in soup.find_all(attrs={"data-e2e": "likes-count"}):
+        likes_counts = tag.text
+    for tag in soup.find_all(attrs={"data-e2e": "followers-count"}):
+        followers_counts = tag.text
+    return [followers_counts, likes_counts]
 driver.get('https://www.tiktok.com/@tiktok')
 input('Giải captcha đi rồi bấm enter.....')
 count = 0
 for i in data:
-    i.replace('\n', '')
+    i = i.replace('\n', '')
     url = 'https://tiktok.com/@'+i
     driver.get(url)
     WebDriverWait(driver, timeout = 0.2)
@@ -71,10 +80,12 @@ for i in data:
         pass
     try:
         e = driver.find_element(By.XPATH, '//*[@id="main-content-others_homepage"]/div/div[1]/div[1]/div[2]/div/div[1]/button')
+        html_source = driver.page_source
+        data = get_username_information(html_source)
         now = datetime.datetime.now()
         print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
         print(Fore.GREEN + '[LIVE] -> ', file=stream, end = '')
-        print(Fore.YELLOW + i, file=stream)
+        print(f'\x1b[33m{i}\x1b[0m  (\x1b[32m {data[0]} \x1b[0mFollowers -- \x1b[32m{data[1]}\x1b[0m Likes)  [\x1b[36m{((driver.title).split("(")[0]).replace(" ", "")}\x1b[0m]')
         f2.write(i)
         n_live += 1
     except:
@@ -96,5 +107,5 @@ print(Fore.GREEN + '████████████████████
 f.close()
 f2.close()
 f3.close()
-driver.close()
+driver.quit()
 print(Style.RESET_ALL)
