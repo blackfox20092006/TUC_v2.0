@@ -1,5 +1,6 @@
 # TUC_v2.0
-Tool Auto Check Live Tiktok Usernames 💘 How to use :
+Tool Auto Check Live Tiktok Usernames 
+💘 How to use :
 
 Input the list of usernames into file 'tiktokid.txt' in directory
 In the Command Line, run 'py tuc.py'
