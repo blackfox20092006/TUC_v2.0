@@ -42,7 +42,7 @@ print(Fore.MAGENTA + banner, file=stream)
 print(Fore.WHITE, 'Check live username Tiktok. Input list of usernames in file tiktokid.txt in the same directory.', file = stream)
 print(Fore.WHITE, 'Live accounts will be written to live.txt and the banned accounts will be written to die.txt.', file = stream)
 data = f.readlines()
-
+data = list(set(data))
 chrome_options = Options()
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--mute-audio")
@@ -64,7 +64,8 @@ def get_username_information(html_source):
         followers_counts = tag.text
     return [followers_counts, likes_counts]
 driver.get('https://www.tiktok.com/@tiktok')
-input('Giải captcha đi rồi bấm enter.....')
+sleep(5)
+input('\x1b[32mGiải captcha đi rồi bấm enter.....\x1b[0m')
 count = 0
 for i in data:
     i = i.replace('\n', '')
@@ -83,6 +84,7 @@ for i in data:
         html_source = driver.page_source
         data = get_username_information(html_source)
         now = datetime.datetime.now()
+        print(f'\x1b[33m{count}\x1b[0m', end='')
         print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
         print(Fore.GREEN + '[LIVE] -> ', file=stream, end = '')
         print(f'\x1b[33m{i}\x1b[0m  (\x1b[32m {data[0]} \x1b[0mFollowers -- \x1b[32m{data[1]}\x1b[0m Likes)  [\x1b[36m{((driver.title).split("(")[0]).replace(" ", "")}\x1b[0m]')
@@ -90,6 +92,7 @@ for i in data:
         n_live += 1
     except:
         now = datetime.datetime.now()
+        print(f'\x1b[33m{count}\x1b[0m', end='')
         print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
         s1 = '[DIE]  -> '+ i
         print(Fore.RED + s1, file = stream)
