@@ -3,12 +3,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from colorama import init, AnsiToWin32
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 import datetime
 from bs4 import BeautifulSoup
 import os
 from time import sleep
 import sys
+followerss, likess = 0, 0
 banner = '''                                              
 TTTTTTTTTTTTTTTTTTTTTTTUUUUUUUU     UUUUUUUU       CCCCCCCCCCCCC
 T:::::::::::::::::::::TU::::::U     U::::::U    CCC::::::::::::C
@@ -41,8 +42,20 @@ f3 = open('die.txt', 'w')
 print(Fore.MAGENTA + banner, file=stream)
 print(Fore.WHITE, 'Check live username Tiktok. Input list of usernames in file tiktokid.txt in the same directory.', file = stream)
 print(Fore.WHITE, 'Live accounts will be written to live.txt and the banned accounts will be written to die.txt.', file = stream)
-data = f.readlines()
-data = list(set(data))
+print('\n\n')
+while True:
+    try:
+        s = input('Username filter [followers likes] (leave it blank to check live): ')
+        if s == '':
+            followerss, likess = 0, 0
+            break
+        followerss, likess = map(int, s.split())
+        break
+    except:
+        continue
+data2 = f.readlines()
+data = []
+data = [i for i in data2 if i not in data]
 chrome_options = Options()
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--mute-audio")
@@ -62,42 +75,51 @@ def get_username_information(html_source):
         likes_counts = tag.text
     for tag in soup.find_all(attrs={"data-e2e": "followers-count"}):
         followers_counts = tag.text
-    return [followers_counts, likes_counts]
+    if followers_counts[len(followers_counts)-1]=='K':
+        followers_counts = int(followers_counts.replace('K', ''))*1000
+    elif followers_counts[len(followers_counts)-1]=='M':
+        followers_counts = int(followers_counts.replace('M', ''))*1000000
+    if likes_counts[len(likes_counts)-1]=='K':
+        likes_counts = int(likes_counts.replace('K', ''))*1000
+    elif likes_counts[len(likes_counts)-1]=='M':
+        likes_counts = int(likes_counts.replace('M', ''))*1000000
+    return [int(followers_counts), int(likes_counts)]
 driver.get('https://www.tiktok.com/@tiktok')
 sleep(5)
-input('\x1b[32mGiải captcha đi rồi bấm enter.....\x1b[0m')
+input('\x1b[32mSolve the captcha and press enter.....\x1b[0m')
 count = 0
 for i in data:
-    i = i.replace('\n', '')
+    i = str(i).replace('\n', '')
     url = 'https://tiktok.com/@'+i
     driver.get(url)
     WebDriverWait(driver, timeout = 0.2)
+    sleep(1)
     try:
-        e = driver.find_element(By.CLASS_NAME, 'captcha-disable-scroll')
-        now = datetime.datetime.now()
-        print(Fore.RED + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] Captcha protection !!', file=stream)
-        continue
+        while driver.find_element(By.CLASS_NAME, 'captcha-disable-scroll'):
+            now = datetime.datetime.now()
+            print(Fore.RED + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] Captcha protection !! Solve it and press enter to continue', file=stream, end='')
     except:
         pass
     try:
         e = driver.find_element(By.XPATH, '//*[@id="main-content-others_homepage"]/div/div[1]/div[1]/div[2]/div/div[1]/button')
-        html_source = driver.page_source
-        data = get_username_information(html_source)
-        now = datetime.datetime.now()
-        print(f'\x1b[33m{count}\x1b[0m', end='')
-        print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
-        print(Fore.GREEN + '[LIVE] -> ', file=stream, end = '')
-        print(f'\x1b[33m{i}\x1b[0m  (\x1b[32m {data[0]} \x1b[0mFollowers -- \x1b[32m{data[1]}\x1b[0m Likes)  [\x1b[36m{((driver.title).split("(")[0]).replace(" ", "")}\x1b[0m]')
         f2.write(i)
         n_live += 1
+        html_source = driver.page_source
+        data = get_username_information(html_source)
+        if data[0] < followerss or data[1] < likess:
+            continue
+        now = datetime.datetime.now()
+        print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
+        print(Fore.GREEN + '[LIVE] -> ', file=stream, end = '')
+        print(f'\x1b[33m{i}  \x1b[0m(\x1b[32m {data[0]} \x1b[0mFollowers -- \x1b[32m{data[1]}\x1b[0m Likes)  [\x1b[36m{((driver.title).split("(")[0]).replace(" ", "")}\x1b[0m]')
     except:
+        f3.write(i)
+        n_die += 1
         now = datetime.datetime.now()
         print(f'\x1b[33m{count}\x1b[0m', end='')
         print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
         s1 = '[DIE]  -> '+ i
         print(Fore.RED + s1, file = stream)
-        f3.write(i)
-        n_die += 1
     count += 1
 now = datetime.datetime.now()
 print(Fore.GREEN + '███████████████████████████████████████████████████████████████████████████████████████████████████████████████')
