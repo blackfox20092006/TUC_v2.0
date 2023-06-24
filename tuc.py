@@ -33,6 +33,7 @@ TTTTTT  T:::::T  TTTTTT U:::::U     U:::::U C:::::C       CCCCCC
 os.system('cls')
 os.system('Tiktok Username Checker by Quang Nhan v2.0')
 n_live = 0
+n_count = 0
 n_die = 0
 init(wrap=False)
 stream = AnsiToWin32(sys.stderr).stream
@@ -108,7 +109,9 @@ for i in data:
         data = get_username_information(html_source)
         if data[0] < followerss or data[1] < likess:
             continue
+        n_count += 1
         now = datetime.datetime.now()
+        print(f'\x1b[31m[{n_count}]\x1b[0m')
         print(Fore.BLUE + '[',now.strftime("%Y-%m-%d %H:%M:%S"),'] ', file=stream, end = '')
         print(Fore.GREEN + '[LIVE] -> ', file=stream, end = '')
         print(f'\x1b[33m{i}  \x1b[0m(\x1b[32m {data[0]} \x1b[0mFollowers -- \x1b[32m{data[1]}\x1b[0m Likes)  [\x1b[36m{((driver.title).split("(")[0]).replace(" ", "")}\x1b[0m]')
